@@ -1,0 +1,45 @@
+
+
+name: PRODUCTION
+
+on:
+  push:
+    branches: [ production ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v2
+      with:
+        node-version: "14.17.0"
+    - run: npm install
+    - name: Stop Webserver
+      uses: appleboy/ssh-action@master
+      with:
+        HOST: ${{ secrets.BLZ_WEBSERVER_LRS }}
+        USERNAME: root
+        PORT: 22
+        KEY: ${{ secrets.BLZ_DEPLOY_KEY }}
+        script: |
+          pm2 list
+    - name: ssh deploy
+      uses: appleboy/scp-action@master
+      env:
+        HOST: ${{ secrets.BLZ_WEBSERVER_LRS }}
+        USERNAME: 'root'
+        PORT: 22
+        KEY: ${{ secrets.BLZ_DEPLOY_KEY }}
+      with:
+        source: "./"
+        target: "/opt/appserver"
+    - name: Start Webserver
+      uses: appleboy/ssh-action@master
+      with:
+        HOST: ${{ secrets.BLZ_WEBSERVER_LRS }}
+        USERNAME: root
+        PORT: 22
+        KEY: ${{ secrets.BLZ_DEPLOY_KEY }}
+        script: |
+          pm2 list

@@ -1,0 +1,32 @@
+
+
+name: SUMMIT
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      VITE_URL: ${{ secrets.URL_SUMMIT_STAGING }}
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v2
+      with:
+        node-version: "14.17.0"
+    - run: echo -e "VITE_URL=$VITE_URL" >> .env
+    - run: npm install -f
+    - run: npm run build
+    - run: mv .env dist
+    - run: mv dist summit
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: '${{ secrets.MVS_AWS_ACCESS_KEY }}'
+        aws-secret-access-key: ${{ secrets.MVS_AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.MVS_AWS_REGION }}
+    - name: Deploy static site to S3 bucket
+      run: aws s3 sync ./summit/ s3://app.summit.events --delete
+    
