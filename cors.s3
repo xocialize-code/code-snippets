@@ -1,6 +1,6 @@
 [
     {
-        "AllowedHeaders": [],
+        "AllowedHeaders": ["Authorization"],
         "AllowedMethods": [
             "GET",
             "POST",
